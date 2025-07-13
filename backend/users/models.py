@@ -32,10 +32,18 @@ class CustomBaseUserManager(BaseUserManager):
         return self._create_user(username, password, **extra_fields)
     
 class User(AbstractBaseUser, PermissionsMixin):
+    AGENT = 'Team member'
+    ADMIN = 'Team Leader'
+
+    ROLES_CHOICES = (
+        (AGENT, 'Team member'),
+        (ADMIN, 'Team leader'),
+    )
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     username = models.CharField(max_length=150, unique=True)
     email = models.EmailField(blank=True)
     avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
+    role = models.CharField(max_length=20, choices=ROLES_CHOICES, default=AGENT)
     is_active = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(default=timezone.now)
