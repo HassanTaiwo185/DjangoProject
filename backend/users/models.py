@@ -4,6 +4,7 @@ from django.contrib.auth.models import  AbstractBaseUser , PermissionsMixin
 import uuid
 from django.utils import timezone
 from django.conf import settings
+from .models import User 
 
 # Create your models here.
 class CustomBaseUserManager(BaseUserManager):
@@ -47,7 +48,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(default=timezone.now)
-
+   
     objects = CustomBaseUserManager()
 
     USERNAME_FIELD = 'username'
@@ -55,4 +56,14 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.username
+
+# model to save confirmation code   
+class ConfirmationCode(models.Model):
+    user = models.ForeignKey(User,on_delete=models.CASCADE)
+    code = models.CharField(blank=True,null=True,max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def is_expired(self):
+        expiry_time = self.created_at + timezone.timedelta(minutes=10)
+        return timezone.now() > expiry_time
 
