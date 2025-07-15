@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework import generics , status
 from .serializers import CreateUser
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny , IsAuthenticated , IsAdminUser
 from .models import User ,ConfirmationCode
 from django.core.mail import send_mail
 from django.conf import settings
@@ -24,8 +24,8 @@ class CreateUser(generics.CreateAPIView):
         code = generate_confirmation_code()
         ConfirmationCode.objects.create(user=user, code=code)
 
-        send_mail(subject="Email Confirmatiom"
-                  ,message=f"Your email confirmation is{code}",
+        send_mail(subject="Email Confirmatiom",
+                  message=f"Your email confirmation is {code}",
                   from_email=settings.DEFAULT_FROM_EMAIL,
                   recipient_list=[user.email],
                   fail_silently=False,)
@@ -69,6 +69,19 @@ class ConfirmCode(APIView):
         confirmation_code.delete()
 
         return Response({"message": "Account activated successfully"})
+
+# Edit user profile
+class EditUser(generics.UpdateAPIView):
+    serializer_class = CreateUser
+    queryset = User.objects.all()
+    permission_classes = [IsAdminUser,IsAuthenticated]
+
+# Delete User profile
+class DeleteUser(generics.DestroyAPIView):
+    serializer_class = CreateUser
+    queryset = User.objects.all()
+    permission_classes = [IsAdminUser,IsAuthenticated]
+
 
 
 
