@@ -33,7 +33,7 @@ class CustomBaseUserManager(BaseUserManager):
     
 class User(AbstractBaseUser, PermissionsMixin):
     AGENT = 'Team member'
-    ADMIN = 'Team Leader'
+    ADMIN = 'Team leader'
 
     ROLES_CHOICES = (
         (AGENT, 'Team member'),
