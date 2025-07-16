@@ -1,5 +1,4 @@
 from rest_framework import serializers
-
 from .models import Team , TeamInvite
 
 # Team serialiser
@@ -10,7 +9,8 @@ class TeamSerializer(serializers.ModelSerializer):
         read_only_fields = ['created_by', 'created_at']
 
 # Team invite serialiser
-class TeamInvitSerializer(serializers.ModelSerializer):
-    class Meta :
-       fields = ['id', 'team', 'token', 'used', 'created_at', 'invitee_email']
-       read_only_fields = ['token', 'used', 'created_at']
+class TeamInviteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TeamInvite
+        fields = ['id', 'team', 'token', 'used', 'created_at', 'invitee_email']
+        read_only_fields = ['token', 'used', 'created_at']

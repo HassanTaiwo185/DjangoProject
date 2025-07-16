@@ -21,7 +21,7 @@ class TeamInvite(models.Model):
     token = models.UUIDField(default=uuid.uuid4,unique=True,editable=False)
     used = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
-    invitee_email = models.EmailField(null=True, blank=True)
+    invitee_email = models.EmailField(null=False, blank=False)
 
     def is_expired(self):
         expiry_time = self.created_at + timedelta(minutes=1440)  

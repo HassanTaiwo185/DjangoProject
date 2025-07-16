@@ -82,5 +82,6 @@ class UpdateUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['role', 'is_staff', 'username', 'email']
+        read_only_fields = ['is_staff'] 
 
 
