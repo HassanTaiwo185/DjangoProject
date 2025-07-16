@@ -4,6 +4,7 @@ from django.contrib.auth.models import  AbstractBaseUser , PermissionsMixin
 import uuid
 from django.utils import timezone
 from django.conf import settings
+from teams.models import Team
 
 
 
@@ -49,6 +50,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(default=timezone.now)
+    team = models.ForeignKey(Team, on_delete=models.CASCADE, null=True, blank=True, related_name='members')
     
     objects = CustomBaseUserManager()
 

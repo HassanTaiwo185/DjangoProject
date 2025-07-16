@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import User
-#from teams.models import TeamInvite
+from teams.models import TeamInvite ,Team
 from django.utils import timezone
 
 
@@ -33,8 +33,13 @@ class CreateUser(serializers.ModelSerializer):
             return None
         try:
             invite = TeamInvite.objects.get(token=value,used=False)
+            
             if invite.expires_at and invite.expires_at < timezone.now():
                 raise serializers.ValidationError("Invitaion link already expired")
+            
+            if invite.used == True:
+                raise serializers.ValidationError("Invitaion link Has been used")
+                
         except TeamInvite.DoesNotExist:
             raise serializers.ValidationError("Invitaion does not exist")
         
@@ -62,6 +67,11 @@ class CreateUser(serializers.ModelSerializer):
            validated_data["role"] = "Team leader"
            validated_data["is_staff"] = True
            user = User.objects.create_user(**validated_data)
+           
+           #CREATE TEAM AS user sign sign in with no invitation link
+           team = Team.objects.create(name=f"{user.username}'s Team", created_by=user)
+           user.team = team
+           user.save()
 
           
        

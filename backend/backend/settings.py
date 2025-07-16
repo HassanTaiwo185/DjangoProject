@@ -159,4 +159,7 @@ EMAIL_HOST_USER = 'ayindehassan776@gmail.com'
 EMAIL_HOST_PASSWORD = 'mvsp ayum cwiu zerz'  
 DEFAULT_FROM_EMAIL = 'NoReply <noreply@domain.com>'
 
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWS_CREDENTIALS = True
+
 
