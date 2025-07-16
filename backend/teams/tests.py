@@ -2,6 +2,11 @@ from django.test import TestCase
 from users.models import User
 from teams.models import Team, TeamInvite
 from teams.serializers import TeamSerializer, TeamInviteSerializer
+from django.urls import reverse
+from rest_framework.test import APITestCase, APIClient
+from rest_framework import status
+from users.models import User
+from teams.models import TeamInvite, Team
 
 # testing teams serializer 
 class TeamSerializerTest(TestCase):
@@ -56,3 +61,61 @@ class TeamInviteSerializerTest(TestCase):
 
         self.assertFalse(serializer.is_valid())
         self.assertIn("invitee_email", serializer.errors)
+
+
+class TeamAPITests(APITestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='teamleader',
+            email='leader@example.com',
+            password='pass123',
+            is_staff=True  
+        )
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+
+    def test_create_team(self):
+        url = reverse('create-team')
+        data = {
+            'name': 'Test Team'
+        }
+
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['name'], 'Test Team')
+        self.assertEqual(response.data['created_by'], self.user.id)
+
+    def test_generate_invite(self):
+        team = Team.objects.create(name='Invite Team', created_by=self.user)
+        url = reverse('generate-invite')
+        data = {
+            'team': team.id,
+            'invitee_email': 'newmember@example.com'
+        }
+
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('invite_link', response.data)
+        self.assertEqual(response.data['invite']['invitee_email'], 'newmember@example.com')
+
+    def test_generate_invite_missing_data(self):
+        url = reverse('generate-invite')
+        response = self.client.post(url, {})  
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('error', response.data)
+
+    def test_generate_invite_permission_denied(self):
+        # Make a non-staff user
+        user2 = User.objects.create_user(username='nonadmin', email='n@example.com', password='pass123')
+        self.client.force_authenticate(user=user2)
+
+        team = Team.objects.create(name='Blocked Team', created_by=user2)
+        url = reverse('generate-invite')
+        data = {
+            'team': team.id,
+            'invitee_email': 'someone@example.com'
+        }
+
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
