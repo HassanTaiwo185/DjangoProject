@@ -9,9 +9,21 @@ class CreateUser(serializers.ModelSerializer):
     invite_token = serializers.UUIDField(write_only= True , required=False)
     class Meta:
         model = User
-        fields = '__all__'
+        fields = [
+            'id',
+            'username',
+            'email',
+            'password',
+            'avatar',
+            'role',
+            'is_active',
+            'is_staff',
+            'invite_token'
+        ]
+        read_only_fields = ['role', 'is_active', 'is_staff']
         extra_kwargs = {
-            "password":{"write_only":True}
+            "password":{"write_only":True},
+            
             
         }
 
@@ -54,5 +66,11 @@ class CreateUser(serializers.ModelSerializer):
           
        
         return user 
+    
+    # serializer to update user profile
+class UpdateUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['role', 'is_staff', 'username', 'email']
 
 

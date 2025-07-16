@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from rest_framework import generics , status
-from .serializers import CreateUser
+from .serializers import CreateUser ,UpdateUserSerializer
 from rest_framework.permissions import AllowAny , IsAuthenticated , IsAdminUser
 from .models import User ,ConfirmationCode
 from django.core.mail import send_mail
@@ -8,16 +8,19 @@ from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
 import random
+from rest_framework.parsers import MultiPartParser, FormParser
+
 
 # Generating 6 digits confirmation code
 def generate_confirmation_code():
     return ''.join(str(random.randint(0, 9)) for _ in range(6))
 
 # Create your views here.
-class CreateUser(generics.CreateAPIView):
+class CreateUserViews(generics.CreateAPIView):
     serializer_class = CreateUser
     queryset = User.objects.all()
     permission_classes = [AllowAny]
+    parser_classes = [MultiPartParser, FormParser]
 
     def perform_create(self, serializer):
         user = serializer.save(is_active=False)
@@ -72,7 +75,7 @@ class ConfirmCode(APIView):
 
 # Edit user profile
 class EditUser(generics.UpdateAPIView):
-    serializer_class = CreateUser
+    serializer_class = UpdateUserSerializer
     queryset = User.objects.all()
     permission_classes = [IsAdminUser,IsAuthenticated]
 

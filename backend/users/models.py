@@ -4,7 +4,8 @@ from django.contrib.auth.models import  AbstractBaseUser , PermissionsMixin
 import uuid
 from django.utils import timezone
 from django.conf import settings
-from .models import User 
+
+
 
 # Create your models here.
 class CustomBaseUserManager(BaseUserManager):
@@ -48,7 +49,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(default=timezone.now)
-   
+    
     objects = CustomBaseUserManager()
 
     USERNAME_FIELD = 'username'

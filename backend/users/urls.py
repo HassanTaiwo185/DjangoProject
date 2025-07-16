@@ -1,9 +1,9 @@
 from django.urls import path
-from .views import CreateUser, ConfirmCode, EditUser, DeleteUser
+from .views import CreateUserViews, ConfirmCode, EditUser, DeleteUser
 
 urlpatterns = [
-    path("register/", CreateUser.as_view(), name="create-user"),
+    path("register/", CreateUserViews.as_view(), name="create-user"),
     path("confirm/", ConfirmCode.as_view(), name="confirm-code"),
-    path("edit/<pk>/", EditUser.as_view(), name="edit-user"),
-    path("delete/<pk>/", DeleteUser.as_view(), name="delete-user"),
+    path("edit/<uuid:pk>/", EditUser.as_view(), name="edit-user"),
+    path("delete/<uuid:pk>/", DeleteUser.as_view(), name="delete-user"),
 ]
