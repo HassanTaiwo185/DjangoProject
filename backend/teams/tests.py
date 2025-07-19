@@ -75,6 +75,7 @@ class TeamAPITests(APITestCase):
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
+     # testing if create team views can create team with valid data
     def test_create_team(self):
         url = reverse('create-team')
         data = {
@@ -86,7 +87,8 @@ class TeamAPITests(APITestCase):
         self.assertEqual(response.data['name'], 'Test Team')
         self.assertEqual(response.data['created_by'], self.user.id)
 
-    def test_generate_invite(self):
+      # testing if staff can generate link
+    def test_generate_invite_staff(self):
         team = Team.objects.create(name='Invite Team', created_by=self.user)
         url = reverse('generate-invite')
         data = {
@@ -99,12 +101,14 @@ class TeamAPITests(APITestCase):
         self.assertIn('invite_link', response.data)
         self.assertEqual(response.data['invite']['invitee_email'], 'newmember@example.com')
 
+    # testing invalid data for generate link 
     def test_generate_invite_missing_data(self):
         url = reverse('generate-invite')
         response = self.client.post(url, {})  
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn('error', response.data)
-
+    
+    # testing if non staff can generate invite link
     def test_generate_invite_permission_denied(self):
         # Make a non-staff user
         user2 = User.objects.create_user(username='nonadmin', email='n@example.com', password='pass123')
