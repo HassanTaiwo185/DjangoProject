@@ -86,7 +86,10 @@ class DeleteUser(generics.DestroyAPIView):
     permission_classes = [IsAdminUser,IsAuthenticated]
 
 
-
+class ListUsers(generics.ListAPIView):
+    serializer_class = CreateUser
+    queryset = User.objects.all()
+    permission_classes = [IsAuthenticated]
 
 
 

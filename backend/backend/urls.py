@@ -28,6 +28,7 @@ urlpatterns = [
     path("api/token/refresh/", TokenRefreshView.as_view(), name="refresh"),
     path("api-auth/", include("rest_framework.urls")),
     path('api/teams/',include('teams.urls')),
+    path('api/standups/',include('standup.urls')),
     
 ]
 # To accept medias in url 
