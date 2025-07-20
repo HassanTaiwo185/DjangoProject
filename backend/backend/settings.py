@@ -46,7 +46,8 @@ INSTALLED_APPS = [
     'teams',
     "rest_framework",
     "corsheaders",
-    "standup"
+    "standup",
+    "chat"
 ]
 
 MIDDLEWARE = [
