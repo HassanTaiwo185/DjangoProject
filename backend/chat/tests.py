@@ -7,6 +7,8 @@ from chat.models import Message
 from chat.serializers import MessageSerializer
 from types import SimpleNamespace
 from teams.models import Team 
+from rest_framework.test import APIClient
+from rest_framework import status
 
 # Create your tests here.
 class RoomSerializerTest(TestCase):
@@ -28,7 +30,7 @@ class RoomSerializerTest(TestCase):
         self.assertTrue(serializer.is_valid())
         room = serializer.save()
         self.assertEqual(room.name, "Project Chat")
-        self.assertEqual(list(room.members.all()), [self.user1, self.user2])
+        self.assertSetEqual(set(room.members.all()), {self.user1, self.user2})
         self.assertEqual(room.standup, self.standup)
 
     def test_room_serializer_missing_members(self):
@@ -119,3 +121,91 @@ class TestMessageSerializer(TestCase):
         serializer = MessageSerializer(data=data, context=context)
         self.assertFalse(serializer.is_valid())
         self.assertIn("non_field_errors", serializer.errors)
+    
+
+# test chat views
+class ChatViewsTestCase(TestCase):
+    # set up for chat room and messages
+    def setUp(self):
+        self.team = Team.objects.create(name="Alpha Team")
+        self.user1 = User.objects.create_user(username="user1", password="pass123", team=self.team)
+        self.user2 = User.objects.create_user(username="user2", password="pass123", team=self.team)
+
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user1) 
+
+        self.standup = StandUp.objects.create(title="Daily", progress="80%", user=self.user1)
+
+        self.room = Room.objects.create(name="Test Room", standup=self.standup)
+        self.room.members.set([self.user1, self.user2])
+
+        self.message = Message.objects.create(room=self.room, sender=self.user1, content="Hello from user1")
+
+     # test how many rooms have been created in user team
+    def test_list_rooms_for_user_team(self):
+        response = self.client.get("/api/chats/rooms/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['id'], str(self.room.id))
+
+      # test if a new chat room can be created successfully with a new standup
+    def test_create_room_successfully(self):
+        new_standup = StandUp.objects.create(title="New Standup", progress="20%", user=self.user1)
+
+        response = self.client.post("/api/chats/rooms/", {
+            "name": "New Room",
+            "members": [self.user1.id, self.user2.id],
+            "standup": new_standup.id
+        })
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Room.objects.count(), 2)
+
+  # test how many messages are have been created in user's team
+    def test_list_messages_for_user_team(self):
+        response = self.client.get("/api/chats/messages/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['content'], "Hello from user1")
+
+      # test create a new message for a pre existing room
+    def test_create_message_for_existing_room(self):
+        response = self.client.post("/api/chats/messages/", {
+            "room": str(self.room.id),
+            "content": "New message"
+        })
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Message.objects.count(), 2)
+
+   # test creat a new message and new chat room from a standup
+    def test_create_message_creates_room_from_standup(self):
+        Room.objects.all().delete()
+
+        response = self.client.post("/api/chats/messages/", {
+            "standup": self.standup.id,
+            "content": "Starting new room with this"
+        })
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Room.objects.count(), 1)
+        self.assertEqual(Message.objects.count(), 1)
+
+  # test if user that is not in the team can access chat room or message of other team .
+    def test_user_cannot_access_other_team_rooms_or_messages(self):
+        outsider = User.objects.create_user(username="outsider", password="1234")
+
+        # Use new client and force_authenticate instead of .login()
+        outsider_client = APIClient()
+        outsider_client.force_authenticate(user=outsider)
+
+        response = outsider_client.get("/api/chats/rooms/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 0)
+
+        response = outsider_client.get("/api/chats/messages/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 0)
+
+        response = outsider_client.post("/api/chats/messages/", {
+            "standup": self.standup.id,
+            "content": "Unauthorized post"
+        })
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

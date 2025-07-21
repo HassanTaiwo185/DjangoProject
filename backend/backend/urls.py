@@ -29,6 +29,8 @@ urlpatterns = [
     path("api-auth/", include("rest_framework.urls")),
     path('api/teams/',include('teams.urls')),
     path('api/standups/',include('standup.urls')),
+    path('api/chats/', include('chat.urls')),  
+
     
 ]
 # To accept medias in url 

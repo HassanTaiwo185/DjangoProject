@@ -14,20 +14,14 @@ class RoomSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'created_at']
 
 class MessageSerializer(serializers.ModelSerializer):
-    standup = serializers.PrimaryKeyRelatedField(
-        queryset=StandUp.objects.all(), required=False, allow_null=True
-    )
-    sender = serializers.PrimaryKeyRelatedField(
-        read_only=True, default=serializers.CurrentUserDefault()
-    )
-    room = serializers.PrimaryKeyRelatedField(
-        queryset=Room.objects.all(), required=False, allow_null=True
-    )
+    standup = serializers.PrimaryKeyRelatedField( queryset=StandUp.objects.all(), required=False, allow_null=True )
+    sender = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
+    room = serializers.PrimaryKeyRelatedField(queryset=Room.objects.all(), required=False, allow_null=True)
 
     class Meta:
         model = Message
         fields = ['standup', 'sender', 'room', 'content', 'timestamp']
-        read_only_fields = ['timestamp']
+        read_only_fields = ['sender','timestamp']
 
     def validate(self, attrs):
         request = self.context['request']
@@ -50,9 +44,8 @@ class MessageSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-        request = self.context['request']
-        user = request.user
-
+        user = self.context['request'].user
+        validated_data["sender"] = user
         standup = validated_data.pop('standup', None)
         room = validated_data.pop('room', None)
 
@@ -75,8 +68,6 @@ class MessageSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Unable to determine a room to save the message in.")
 
         message = Message.objects.create(
-            room=room,
-            sender=user,
-            **validated_data
+            room=room , **validated_data
         )
         return message
