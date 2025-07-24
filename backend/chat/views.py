@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework import generics
 from rest_framework.permissions import IsAdminUser ,AllowAny ,IsAuthenticated
-from .serializers import RoomSerializer , MessageSerializer
+from .serializers import RoomSerializer , MessageSerializer , EditMessageSerializer ,DeleteMessageSerializer
 from .models import Room ,Message
 from users.models import User
 from rest_framework.exceptions import NotFound
@@ -39,5 +39,22 @@ class ListMessagesByStandup(generics.ListAPIView):
             raise NotFound("Room for this standup does not exist.")
 
         return Message.objects.filter(room=room).order_by("created")
+
+# edit message view 
+class EditMessageView(generics.UpdateAPIView):
+    serializer_class = EditMessageSerializer
+    permission_classes = [IsAuthenticated]
     
+    def get_queryset(self):
+        return Message.objects.filter(sender=self.request.user)
+
+# delete message 
+class DeleteMessageView(generics.DestroyAPIView):
+    serializer_class = EditMessageSerializer
+    permission_classes = [IsAuthenticated]
+   
+    def get_queryset(self):
+        return Message.objects.filter(sender=self.request.user)
+
+
    

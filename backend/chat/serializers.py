@@ -71,3 +71,47 @@ class MessageSerializer(serializers.ModelSerializer):
             room=room , **validated_data
         )
         return message
+    
+    
+class EditMessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Message
+        fields = ['id','content']
+        read_only_fields = ["id"]
+        
+    def validate(self, attrs):
+            request = self.context['request']
+            user = request.user
+            message_id = attrs.pop('id')
+            try :
+                Message.objects.get(id=message_id,sender=user)
+            except Message.DoesNotExist:
+                raise serializers.ValidationError("Message does not exist or you are not the sender.")
+            return attrs 
+            
+    def update(self,instance,validated_data):
+           instance.content = validated_data.get('content', instance.content)
+           instance.save()
+           return instance
+            
+       
+class DeleteMessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Message
+        fields = ['id','content']
+        read_only_fields = ["id"]
+        
+    def validate(self,attrs):
+            request = self.context['request']
+            user = request.user
+            message_id = attrs.pop('id')
+            
+            try :
+                Message.objects.get(id=message_id,sender=user)
+            except Message.DoesNotExist:
+                raise serializers.ValidationError("Message does not exist or you are not the sender.")
+            return attrs 
+            
+        
+            
+       
