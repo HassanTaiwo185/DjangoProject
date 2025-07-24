@@ -25,7 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-a7munyer4qud+-6gv_uj4016kzo!b_y94ywf5o8zdf_$frzm+6'
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -36,6 +36,7 @@ ALLOWED_HOSTS = ["*"]
 # Application definition
 
 INSTALLED_APPS = [
+    "daphne",
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -46,8 +47,9 @@ INSTALLED_APPS = [
     'teams',
     "rest_framework",
     "corsheaders",
+    "channels",
     "standup",
-    "chat"
+    "chat",
 ]
 
 MIDDLEWARE = [
@@ -81,6 +83,20 @@ AUTH_USER_MODEL = 'users.User'
 
 
 WSGI_APPLICATION = 'backend.wsgi.application'
+ASGI_APPLICATION ='backend.asgi.application'
+
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("localhost", 6379)],
+        },
+    },
+}
+
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
 
 
 # Database
@@ -157,8 +173,8 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'ayindehassan776@gmail.com'  
-EMAIL_HOST_PASSWORD = 'mvsp ayum cwiu zerz'  
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = 'NoReply <noreply@domain.com>'
 
 CORS_ALLOW_ALL_ORIGINS = True

@@ -90,9 +90,10 @@ class TeamAPITests(APITestCase):
       # testing if staff can generate link
     def test_generate_invite_staff(self):
         team = Team.objects.create(name='Invite Team', created_by=self.user)
+        self.user.team = team
+        self.user.save()
         url = reverse('generate-invite')
         data = {
-            'team': team.id,
             'invitee_email': 'newmember@example.com'
         }
 

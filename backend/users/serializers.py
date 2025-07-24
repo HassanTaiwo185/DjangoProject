@@ -83,5 +83,36 @@ class UpdateUserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['role', 'is_staff', 'username', 'email']
         read_only_fields = ['is_staff'] 
+     
+     # serialiser forgot password
+class ForgotPasswordSerializer(serializers.ModelSerializer):
+    confirm_password = serializers.CharField(write_only=True)
+    class Meta:
+        model = User
+        fields = ["username","password","confirm_password"]
+        
+        def validate(self,data):
+            password = data.get("password")
+            confirm_password = data.get("confirm_pasword")
+            
+            if password != confirm_password:
+               raise serializers.ValidationError("Passwords do not match.")
+            return data
+            
+        def save(self,**kwargs):
+            username = self.validated_data["username"]
+            password = self.validated_data["password"]
+            
+            try:
+              user = User.objects.get(username=username)
+            except User.DoesNotExist:
+              raise serializers.ValidationError("User does not exist.")
+
+            user.set_password(password)
+            user.save()
+            return user
+
+            
+
 
 

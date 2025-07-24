@@ -27,20 +27,14 @@ class GenerateTeamInviteView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated,IsAdminUser]
 
     def create(self, request, *args, **kwargs):
-        team_id = request.data.get("team")
+        team = request.user.team
         invitee_email = request.data.get("invitee_email")
 
         # checking if team if and invitee_email are provided
-        if not team_id or not invitee_email:
+        if not team or not invitee_email:
             return Response(
                 {"error": "Both 'team' and 'invitee_email' are required."}
             )
-        
-        # checking if team exist
-        try:
-            team = Team.objects.get(id=team_id)
-        except Team.DoesNotExist:
-            return Response({"error": "Team not found."}, status=404)
 
           # creating team invite
         invite = TeamInvite.objects.create(team=team, invitee_email=invitee_email)
@@ -69,3 +63,8 @@ class GenerateTeamInviteView(generics.CreateAPIView):
             "invite_link": invite_link,
             "invite": serializer.data
         })
+class DeleteTeam(generics.DestroyAPIView):
+    permission_classes = [IsAdminUser,IsAuthenticated]
+    serializer_class = Team
+    def get_queryset(self):
+        return Team.objects.filter(created_by= self.request.user)

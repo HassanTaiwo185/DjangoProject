@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from rest_framework import generics , status
-from .serializers import CreateUser ,UpdateUserSerializer
+from .serializers import CreateUser ,UpdateUserSerializer , ForgotPasswordSerializer
 from rest_framework.permissions import AllowAny , IsAuthenticated , IsAdminUser
 from .models import User ,ConfirmationCode
 from django.core.mail import send_mail
@@ -85,12 +85,15 @@ class DeleteUser(generics.DestroyAPIView):
     queryset = User.objects.all()
     permission_classes = [IsAdminUser,IsAuthenticated]
 
-
+# List all users
 class ListUsers(generics.ListAPIView):
     serializer_class = CreateUser
     queryset = User.objects.all()
     permission_classes = [IsAuthenticated]
-
-
-
+    
+# Forgot password VIEWS
+class ForgotPassword(generics.CreateAPIView):
+    permission_classes = [AllowAny]
+    queryset = User.objects.all()
+    serializer_class = ForgotPasswordSerializer
 
