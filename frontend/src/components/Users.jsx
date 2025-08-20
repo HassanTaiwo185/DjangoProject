@@ -1,4 +1,4 @@
-import { useEffect, useReducer } from "react";
+import { useEffect, useReducer, useState } from "react";
 import api from "../api";
 import UserTable from "../components/UserTable";
 
@@ -17,13 +17,19 @@ const reducer = (state, action) => {
 
 const User = () => {
   const [users, dispatch] = useReducer(reducer, initialUsers);
+  const [fetchError, setFetchError] = useState(null);
+  const [loading, setLoading] = useState(false); 
 
   const fetchUsers = async () => {
+    setLoading(true); 
     try {
       const response = await api.get("users/list/");
       dispatch({ type: "Listusers", payload: response.data });
-    } catch (err) {
-      console.error("Failed to fetch users", err);
+      setFetchError(null);
+    } catch {
+      setFetchError("Failed to fetch users. Please try again later.");
+    } finally {
+      setLoading(false); 
     }
   };
 
@@ -31,13 +37,18 @@ const User = () => {
     fetchUsers();
   }, []);
 
-  // Get current user from localStorage (or context if you use it)
   const currentUser = JSON.parse(localStorage.getItem("currentUser"));
 
   return (
     <div>
-      <h2>User Management</h2>
-      <UserTable users={users} dispatch={dispatch} currentUser={currentUser} />
+      <h2 className="text-2xl font-bold mb-4">User Management</h2>
+      <UserTable 
+        users={users} 
+        dispatch={dispatch} 
+        currentUser={currentUser} 
+        fetchError={fetchError} 
+        loading={loading}
+      />
     </div>
   );
 };

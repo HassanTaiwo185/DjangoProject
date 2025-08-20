@@ -12,13 +12,20 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
-from dotenv import load_dotenv
 import os
 
-load_dotenv()
+# Import dotenv only if needed for local development
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass  # dotenv is not installed or not needed in production
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# SECRET_KEY is now read directly from environment variables
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 
 # Quick-start development settings - unsuitable for production
@@ -86,17 +93,24 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 ASGI_APPLICATION ='backend.asgi.application'
 
 
+
+# Redis URL (TLS enabled on AWS)
+REDIS_URL = os.getenv("REDIS_URL", "redis://127.0.0.1:6379/0")
+
+# Channels configuration
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [("localhost", 6379)],
+            "hosts": [REDIS_URL],
         },
     },
 }
 
-CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOW_CREDENTIALS = True
+# Celery Configuration (if you're using it)
+CELERY_BROKER_URL = REDIS_URL
+CELERY_RESULT_BACKEND = REDIS_URL
+
 
 
 # Database
@@ -104,10 +118,15 @@ CORS_ALLOW_CREDENTIALS = True
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASSWORD'),
+        'HOST': os.getenv('DB_HOST'),
+        'PORT': os.getenv('DB_PORT','5432')
     }
 }
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -177,7 +196,18 @@ EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = 'NoReply <noreply@domain.com>'
 
-CORS_ALLOW_ALL_ORIGINS = True
+
+
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:5174')
+
+
+CORS_ALLOWED_ORIGINS = [FRONTEND_URL]
 CORS_ALLOWS_CREDENTIALS = True
+
+
+
+
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 

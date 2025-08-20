@@ -3,7 +3,9 @@ import Form from "../components/Forms";
 import { Link } from "react-router-dom";
 
 const SignupPage = () => {
-  const [mode, setMode] = useState("login"); // login | register | forgot | reset
+  const [mode, setMode] = useState("login");
+  
+  
 
   const getFormProps = () => {
     switch (mode) {
@@ -19,44 +21,59 @@ const SignupPage = () => {
   };
 
   return (
-    <div>
-      <h1>
+    <div className="min-h-screen flex flex-col justify-center items-center   bg-blue-50">
+    <div className="text-center mb-8 mt-4" >
+      <h1 className="text-3xl font-bold text-gray-800 mb-8">
         {mode === "login"
-          ? "Login"
+          ? "Welcome Back"
           : mode === "register"
-          ? "Register"
+          ? "Create Account"
           : mode === "forgot"
           ? "Forgot Password"
           : "Reset Password"}
       </h1>
+       <p className="text-gray-600">
+            {mode === "login"
+              ? "Sign in to your account"
+              : mode === "register"
+              ? "Join us today"
+              : "We'll help you get back in"}
+          </p>
 
       <Form {...getFormProps()} />
 
-      <div style={{ marginTop: "20px" }}>
+      <div >
         {mode === "login" && (
-          <>
-            <p>
+          <div className="mt-6 text-center space-y-3">
+            <p className="text-gray-600">
               Don't have an account?{" "}
-              <button onClick={() => setMode("register")}>
-                Register
+              <button onClick={() => setMode("register")}
+                className="text-blue-600 hover:text-blue-800 font-medium hover:underline">
+                Sign up
               </button>
             </p>
             <p>
-              <Link to="#" onClick={() => setMode("forgot")}>
+              <Link to="#" onClick={() => setMode("forgot")}
+              className="text-blue-600 hover:text-blue-800 font-medium hover:underline">
                 Forgot Password?
               </Link>
             </p>
-          </>
+          </div>
         )}
 
         {mode !== "login" && (
+           <div className="mt-6 text-center space-y-3">
+          
           <p>
-            <button onClick={() => setMode("login")}>
+            <button onClick={() => setMode("login")}
+              className="text-blue-600 hover:text-blue-800 font-medium hover:underline ">
               Back to Login
             </button>
           </p>
+           </div>
         )}
       </div>
+    </div>
     </div>
   );
 };
