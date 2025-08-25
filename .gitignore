@@ -13,3 +13,4 @@ staticfiles/
 .vite/
 
 .env
+*.env

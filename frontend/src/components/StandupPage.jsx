@@ -61,45 +61,56 @@ const StandupPage = ({ standupList, setStandupList }) => {
     };
 
     const handleSendMessage = async (standupId) => {
-        setError(null);
-        const content = messages[standupId]?.trim();
-        if (!content) return;
+    setError(null);
+    const content = messages[standupId]?.trim();
+    if (!content) return;
 
-        let roomUUID = rooms[standupId];
+    // reset input immediately
+    setMessages((prev) => ({ ...prev, [standupId]: "" }));
 
-        try {
-            if (!roomUUID) {
-                const response = await api.post("chats/messages/", {
-                    content,
-                    standup: standupId,
+    let roomUUID = rooms[standupId];
+
+    try {
+        if (!roomUUID) {
+            // 1. First reply → hit API to create room/message
+            const response = await api.post("chats/messages/", {
+                content,
+                standup: standupId,
+            });
+
+            roomUUID = response.data.room;
+            if (!roomUUID) throw new Error("Room UUID not returned");
+
+            setRooms((prev) => ({ ...prev, [standupId]: roomUUID }));
+
+            // 2. Connect to the new room and send pending message once open
+            await new Promise((resolve, reject) => {
+                connectToRoom(roomUUID, () => {
+                    const socket = sockets.current[roomUUID];
+                    if (socket?.readyState === WebSocket.OPEN) {
+                        socket.send(JSON.stringify({ type: "message", content }));
+                        resolve();
+                    } else {
+                        reject(new Error("Socket not open after connect"));
+                    }
                 });
-
-                roomUUID = response.data.room;
-                if (!roomUUID) throw new Error("Room UUID not returned");
-
-                setRooms((prev) => ({ ...prev, [standupId]: roomUUID }));
-                connectToRoom(roomUUID);
-            } else if (!sockets.current[roomUUID]) {
-                connectToRoom(roomUUID);
-            }
-
+            });
+        } else {
+            // 3. Existing room → send via WebSocket directly
             const socket = sockets.current[roomUUID];
             if (socket?.readyState === WebSocket.OPEN) {
-                socket.send(
-                    JSON.stringify({
-                        type: "message",
-                        content,
-                    })
-                );
+                socket.send(JSON.stringify({ type: "message", content }));
             } else {
                 setError("Connection issue. Some messages may not be sent.");
             }
-
-            setMessages((prev) => ({ ...prev, [standupId]: "" }));
-        } catch (err) {
-            setError("Failed to send due to server/API error.");
         }
-    };
+    } catch (err) {
+        console.error(err);
+        setError("Failed to send due to server/API error.");
+    }
+};
+
+
 
     const handleDeleteStandup = async (standupId) => {
         setError(null);

@@ -63,6 +63,20 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
                     "sender": self.scope["user"].username,
                 }
             )
+            
+        elif type == 'delete':
+         message_id = data.get("id")
+         deleted = await self.delete_message(message_id)
+         if deleted:
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    "type": "chat_delete",
+                    "id": message_id,
+                    "sender": sender,
+                }
+            )
+
     
     # sending data to frontend to render message
     async def chat_message(self,event) :
@@ -81,6 +95,14 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
             "content": event["content"],
             "sender": event["sender"],
         })) 
+        
+    async def chat_delete(self, event):
+     await self.send(text_data=json.dumps({
+        "type": "chat_delete",
+        "id": event["id"],  # message that was deleted
+        "sender": event["sender"],
+    }))
+
         
         # getting room 
     @sync_to_async
@@ -115,5 +137,15 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
     
         return Message.objects.create( content=content,sender=user, room=self.room
     )
+        
+    @sync_to_async
+    def delete_message(self, message_id):
+      try:
+        message = Message.objects.get(id=message_id, room=self.room)
+        message.delete()
+        return True
+      except Message.DoesNotExist:
+        return False
+
 
     

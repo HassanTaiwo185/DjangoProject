@@ -66,6 +66,10 @@ const ChatRoom = () => {
                                 });
                             }, 3000);
                         }
+                        
+                    }
+                    else if (data.type === "chat_delete") {
+                        setMessages((prev) => prev.filter((msg) => msg.id !== data.id));
                     }
                 } catch {
                     setError("Server error");
@@ -131,18 +135,8 @@ const ChatRoom = () => {
 
     const handleDelete = async (id) => {
         if (!window.confirm("Delete this message?")) return;
-        try {
-            const res = await api.delete(`chats/messages/standup/delete/${id}/`);
-            if (res.status === 200 || res.status === 204) {
-                setMessages((prev) => prev.filter((msg) => msg.id !== id));
-                setSelectedMessageId(null);
-            }
-        } catch (error) {
-            if (error.response?.status === 403) {
-                alert("You are not authorized to delete this message.");
-            } else {
-                alert("Failed to delete message.");
-            }
+        if (socketRef.current?.readyState === WebSocket.OPEN) {
+            socketRef.current.send(JSON.stringify({ type: "delete", id }));
         }
     };
 
