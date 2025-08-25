@@ -28,16 +28,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY')
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = [
+    'www.microflow.it.com',
+    'microflow.it.com',
+    'last-env.us-east-2.elasticbeanstalk.com'
+]
 
 
 # Application definition
@@ -94,23 +93,29 @@ ASGI_APPLICATION ='backend.asgi.application'
 
 
 
-# Redis URL (TLS enabled on AWS)
-REDIS_URL = os.getenv("REDIS_URL", "redis://127.0.0.1:6379/0")
+
+
+# Redis URL (TLS enabled on AWS ElastiCache)
+REDIS_URL =  os.environ.get('REDIS_URL')
 
 # Channels configuration
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [REDIS_URL],
+            "hosts": [REDIS_URL]  # no ssl kwarg needed
         },
     },
 }
 
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
+
+
 # Celery Configuration (if you're using it)
 CELERY_BROKER_URL = REDIS_URL
 CELERY_RESULT_BACKEND = REDIS_URL
-
 
 
 # Database
@@ -198,11 +203,13 @@ DEFAULT_FROM_EMAIL = 'NoReply <noreply@domain.com>'
 
 
 
-FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:5174')
+FRONTEND_URL = os.environ.get('FRONTEND_URL')
 
+CORS_ALLOWED_ORIGINS = [
+    FRONTEND_URL,
+]
 
-CORS_ALLOWED_ORIGINS = [FRONTEND_URL]
-CORS_ALLOWS_CREDENTIALS = True
+CORS_ALLOW_CREDENTIALS = True
 
 
 
