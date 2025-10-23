@@ -92,10 +92,8 @@ Your frontend will be running at http://localhost:5173.
 Step 4: Run the App
 With both the Django and React development servers running, you can access the application in your browser at http://localhost:5173.
 Tip: To test the real-time features, open two browser tabs and log in with different users. You will be able to see messages appear instantly in both tabs.
-Project Demo
-This is a short demo GIF showing two users chatting in real-time.
 
 
-￼
+￼￼
 
 ￼
